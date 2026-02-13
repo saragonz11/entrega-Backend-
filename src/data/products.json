@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "title": "Laptop",
+    "description": "",
+    "code": "",
+    "price": 999,
+    "status": true,
+    "stock": 5,
+    "category": "",
+    "thumbnails": []
+  }
+]
