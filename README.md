@@ -16,6 +16,15 @@ npm start
 
 El servidor escucha en **http://localhost:8080**.
 
+## Vistas (Handlebars + Socket.io)
+
+| Ruta                | Vista                    | Descripción                                                                 |
+| ------------------- | ------------------------ | --------------------------------------------------------------------------- |
+| GET /               | realTimeProducts.handlebars | Lista de productos en tiempo real (WebSockets)                           |
+| GET /realtimeproducts | realTimeProducts.handlebars | Misma vista                                                              |
+
+La lista se actualiza automáticamente al crear (POST `/api/products`) o eliminar (DELETE `/api/products/:pid`) un producto. El servidor emite eventos Socket.io (`productCreated`, `productDeleted`) desde las rutas HTTP correspondientes.
+
 ## Endpoints
 
 ### Productos (`/api/products`)

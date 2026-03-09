@@ -1,0 +1,155 @@
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h1 class="mb-1">Productos</h1>
+  </div>
+  <button type="button" class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#asideNewProduct" aria-controls="asideNewProduct">
+    Crear producto
+  </button>
+</div>
+
+<!-- Aside: formulario nuevo producto -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="asideNewProduct" aria-labelledby="asideNewProductLabel">
+  <div class="offcanvas-header border-bottom">
+    <h2 class="offcanvas-title h5 mb-0" id="asideNewProductLabel">Nuevo producto</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+  </div>
+  <div class="offcanvas-body">
+    <form id="formAddProduct" class="row g-3">
+      <div class="col-12">
+        <label for="title" class="form-label">Título</label>
+        <input type="text" class="form-control" id="title" name="title" placeholder="Título" required />
+      </div>
+      <div class="col-12">
+        <label for="price" class="form-label">Precio</label>
+        <input type="number" class="form-control" id="price" name="price" placeholder="Precio" step="0.01" required />
+      </div>
+      <div class="col-12">
+        <label for="stock" class="form-label">Stock</label>
+        <input type="number" class="form-control" id="stock" name="stock" placeholder="Stock" />
+      </div>
+      <div class="col-12">
+        <label for="description" class="form-label">Descripción</label>
+        <input type="text" class="form-control" id="description" name="description" placeholder="Descripción" />
+      </div>
+      <div class="col-12">
+        <label for="code" class="form-label">Código</label>
+        <input type="text" class="form-control" id="code" name="code" placeholder="Código" />
+      </div>
+      <div class="col-12">
+        <label for="category" class="form-label">Categoría</label>
+        <input type="text" class="form-control" id="category" name="category" placeholder="Categoría" />
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary w-100">Crear producto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<section class="card">
+  <div class="card-header">
+    <h2 class="h5 mb-0">Lista de productos</h2>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Categoría</th>
+            <th class="text-end">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="productList">
+          {{#each products}}
+            <tr data-product-id="{{this.id}}">
+              <td class="font-monospace">{{this.id}}</td>
+              <td>{{this.title}}</td>
+              <td>{{this.price}}</td>
+              <td>{{this.stock}}</td>
+              <td>{{this.category}}</td>
+              <td class="text-end"><button type="button" class="btn btn-sm btn-danger btnDelete" data-id="{{this.id}}">Eliminar</button></td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <p id="emptyMessage" class="text-muted mb-0 {{#if products.length}}d-none{{/if}}">No hay productos.</p>
+  </div>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  socket.on("productCreated", (product) => {
+    const tbody = document.getElementById("productList");
+    const emptyMsg = document.getElementById("emptyMessage");
+    const tr = document.createElement("tr");
+    tr.setAttribute("data-product-id", product.id);
+    tr.innerHTML = `
+      <td class="font-monospace">${product.id}</td>
+      <td>${escapeHtml(product.title)}</td>
+      <td>${product.price}</td>
+      <td>${product.stock ?? ""}</td>
+      <td>${escapeHtml(product.category ?? "")}</td>
+      <td class="text-end"><button type="button" class="btn btn-sm btn-danger btnDelete" data-id="${product.id}">Eliminar</button></td>
+    `;
+    tbody.appendChild(tr);
+    tr.querySelector(".btnDelete").addEventListener("click", () => deleteProduct(product.id));
+    if (emptyMsg) emptyMsg.classList.add("d-none");
+  });
+
+  socket.on("productDeleted", (pid) => {
+    const row = document.querySelector(`#productList tr[data-product-id="${pid}"]`);
+    if (row) row.remove();
+    const tbody = document.getElementById("productList");
+    const emptyMsg = document.getElementById("emptyMessage");
+    if (emptyMsg && tbody && tbody.children.length === 0) emptyMsg.classList.remove("d-none");
+  });
+
+  function escapeHtml(s) {
+    const div = document.createElement("div");
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  document.getElementById("formAddProduct").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const payload = {
+      title: form.title.value,
+      price: parseFloat(form.price.value),
+      description: form.description.value || "",
+      code: form.code.value || "",
+      stock: parseInt(form.stock.value, 10) || 0,
+      category: form.category.value || "",
+    };
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        form.reset();
+        const aside = document.getElementById("asideNewProduct");
+        const offcanvas = bootstrap.Offcanvas.getInstance(aside);
+        if (offcanvas) offcanvas.hide();
+      } else console.error(await res.text());
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  function deleteProduct(id) {
+    fetch(`/api/products/${id}`, { method: "DELETE" }).catch(console.error);
+  }
+
+  document.querySelectorAll("#productList .btnDelete").forEach((btn) => {
+    btn.addEventListener("click", () => deleteProduct(btn.getAttribute("data-id")));
+  });
+</script>
