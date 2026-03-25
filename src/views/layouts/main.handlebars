@@ -8,31 +8,188 @@
       rel="stylesheet"
     />
     <style>
-      /* Colores de botones: cambia los valores aquí para personalizar */
+      /* Tema unificado (sin azul): paleta malva / púrpura suave */
+      :root {
+        --theme-primary: #b392ac;
+        --theme-primary-dark: #735d78;
+        --theme-primary-border: #b382a8;
+        --theme-danger-bg: #e8c2ca;
+        --theme-danger-border: #e2b5bf;
+        --theme-surface: #f4eff2;
+        --theme-card-header: #ebe3ea;
+        --bs-primary: #b392ac;
+        --bs-primary-rgb: 179, 146, 172;
+        --bs-link-color: #735d78;
+        --bs-link-hover-color: #5a4a5e;
+        --bs-focus-ring-color: rgba(115, 93, 120, 0.35);
+      }
+
+      body {
+        background-color: var(--theme-surface) !important;
+      }
+
+      a:not(.btn):not(.page-link):not(.nav-link):not(.navbar-brand),
+      .link-primary {
+        color: var(--theme-primary-dark) !important;
+        text-decoration-color: rgba(115, 93, 120, 0.45);
+      }
+      a:not(.btn):not(.page-link):not(.nav-link):not(.navbar-brand):hover,
+      .link-primary:hover {
+        color: #5a4a5e !important;
+      }
+
+      .navbar {
+        background-color: var(--theme-primary-dark) !important;
+      }
+      .navbar-dark .navbar-brand,
+      .navbar-dark .nav-link {
+        color: rgba(255, 255, 255, 0.92) !important;
+      }
+      .navbar-dark .nav-link:hover {
+        color: #fff !important;
+      }
+
       .btn-primary {
-        background-color: #b392ac;
-        border-color: #b382a8;
+        background-color: var(--theme-primary) !important;
+        border-color: var(--theme-primary-border) !important;
+        color: #fff !important;
       }
-      .btn-primary:hover {
-        background-color: #735d78;
-        border-color: #705077;
+      .btn-primary:hover,
+      .btn-primary:focus {
+        background-color: var(--theme-primary-dark) !important;
+        border-color: #705077 !important;
+        color: #fff !important;
       }
+      .btn-outline-primary {
+        color: var(--theme-primary-dark) !important;
+        border-color: var(--theme-primary) !important;
+      }
+      .btn-outline-primary:hover,
+      .btn-outline-primary:focus {
+        background-color: var(--theme-primary) !important;
+        border-color: var(--theme-primary-border) !important;
+        color: #fff !important;
+      }
+      .btn-outline-secondary {
+        color: var(--theme-primary-dark) !important;
+        border-color: #a898a8 !important;
+      }
+      .btn-outline-secondary:hover {
+        background-color: #d8ccd4 !important;
+        border-color: #a898a8 !important;
+        color: var(--theme-primary-dark) !important;
+      }
+
       .btn-danger {
-        background-color: #e8c2ca;
-        border-color: #e2b5bf;
-        color: #735d78;
+        background-color: var(--theme-danger-bg) !important;
+        border-color: var(--theme-danger-border) !important;
+        color: var(--theme-primary-dark) !important;
       }
       .btn-danger:hover {
-        background-color: #d1b3c4;
-        border-color: #d1a5be;
-        color: #735d78;
+        background-color: #d1b3c4 !important;
+        border-color: #d1a5be !important;
+        color: var(--theme-primary-dark) !important;
+      }
+
+      .pagination .page-link {
+        color: var(--theme-primary-dark) !important;
+        border-color: #d8ccd4;
+        background-color: #fff;
+      }
+      .pagination .page-link:hover {
+        color: #fff !important;
+        background-color: var(--theme-primary) !important;
+        border-color: var(--theme-primary-border) !important;
+      }
+      .pagination .page-item.active .page-link {
+        background-color: var(--theme-primary-dark) !important;
+        border-color: var(--theme-primary-dark) !important;
+        color: #fff !important;
+      }
+      .pagination .page-item.disabled .page-link {
+        color: #8a7a88 !important;
+        background-color: #f0eaed;
+        border-color: #e5dde2;
+      }
+
+      .breadcrumb-item a {
+        color: var(--theme-primary-dark) !important;
+      }
+      .breadcrumb-item.active {
+        color: #6c5a68 !important;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--theme-primary) !important;
+        box-shadow: 0 0 0 0.2rem rgba(179, 146, 172, 0.45) !important;
+      }
+
+      .card {
+        border-color: #e0d6dc;
+      }
+      .card-header {
+        background-color: var(--theme-card-header) !important;
+        border-bottom-color: #d8ccd4 !important;
+        color: var(--theme-primary-dark) !important;
+      }
+
+      .table-striped > tbody > tr:nth-of-type(odd) > * {
+        background-color: rgba(179, 146, 172, 0.06) !important;
+      }
+
+      .offcanvas-header {
+        background-color: var(--theme-card-header);
+        border-bottom-color: #d8ccd4 !important;
+      }
+
+      .text-muted a {
+        color: var(--theme-primary-dark) !important;
+      }
+      .text-muted a:hover {
+        color: #5a4a5e !important;
+      }
+
+      code {
+        color: #6b4f63 !important;
+        background-color: #ede5ea;
+        padding: 0.15em 0.35em;
+        border-radius: 0.25rem;
+      }
+
+      .table-dark {
+        --bs-table-bg: #4a3d48;
+        --bs-table-border-color: #5c4e59;
+        --bs-table-color: #fff;
+      }
+
+      .btn:focus-visible {
+        box-shadow: 0 0 0 0.2rem rgba(115, 93, 120, 0.35) !important;
       }
     </style>
   </head>
-  <body class="bg-light">
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+      <div class="container">
+        <a class="navbar-brand" href="/products">Catálogo</a>
+        <div class="navbar-nav">
+          <a class="nav-link" href="/products">Productos</a>
+          <a class="nav-link" href="/realtimeproducts">Tiempo real</a>
+          <a class="nav-link" id="navCartLink" href="#">Mi carrito</a>
+        </div>
+      </div>
+    </nav>
     <div class="container py-4">
       {{{body}}}
     </div>
+    <script>
+      (function () {
+        var cid = localStorage.getItem("cartId");
+        var el = document.getElementById("navCartLink");
+        if (el && cid) el.setAttribute("href", "/carts/" + cid);
+        else if (el) el.setAttribute("href", "/products");
+      })();
+    </script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
     ></script>

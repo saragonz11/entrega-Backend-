@@ -10,6 +10,9 @@ const hbs = create({
   defaultLayout: "main",
   layoutsDir: path.join(__dirname, "views", "layouts"),
   partialsDir: path.join(__dirname, "views", "partials"),
+  helpers: {
+    eq: (a, b) => a === b,
+  },
 });
 
 app.engine("handlebars", hbs.engine);

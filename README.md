@@ -1,6 +1,6 @@
-# Entrega N° 1 - API Productos y Carritos
+# API Productos y Carritos — Entrega final
 
-Servidor Node.js + Express para gestionar productos y carritos de compra. Persistencia en archivos JSON.
+Servidor Node.js + Express. Persistencia en **MongoDB** (Mongoose), vistas con **Handlebars** y **Socket.io** en tiempo real.
 
 ## Instalación
 
@@ -8,65 +8,97 @@ Servidor Node.js + Express para gestionar productos y carritos de compra. Persis
 npm install
 ```
 
+## Configuración
+
+1. Copia `.env.example` a `.env`.
+2. Asigna `MONGODB_URI` con tu cadena de Atlas. Incluye el **nombre de la base de datos** en la URL, por ejemplo:  
+   `...mongodb.net/mi_base?retryWrites=true&w=majority&appName=Cluster0`
+
+**Nota:** Si antes usabas carritos guardados con `product` como número, vacía o migra la colección `carts`: ahora cada ítem referencia al modelo `Product` por `ObjectId` (populate).
+
 ## Ejecución
 
 ```bash
 npm start
 ```
 
-El servidor escucha en **http://localhost:8080**.
+Servidor: **http://localhost:8080**
 
-## Vistas (Handlebars + Socket.io)
+## Vistas
 
-| Ruta                | Vista                    | Descripción                                                                 |
-| ------------------- | ------------------------ | --------------------------------------------------------------------------- |
-| GET /               | realTimeProducts.handlebars | Lista de productos en tiempo real (WebSockets)                           |
-| GET /realtimeproducts | realTimeProducts.handlebars | Misma vista                                                              |
+| Ruta | Vista | Descripción |
+|------|--------|-------------|
+| GET `/` | — | Redirige a `/products` |
+| GET `/products` | `index.handlebars` | Catálogo paginado, filtros y “Agregar al carrito” |
+| GET `/products/:pid` | `productDetail.handlebars` | Detalle y botón agregar al carrito |
+| GET `/carts/:cid` | `cartView.handlebars` | Carrito con productos completos (populate) |
+| GET `/realtimeproducts` | `realTimeProducts.handlebars` | Lista en tiempo real (WebSockets) |
 
-La lista se actualiza automáticamente al crear (POST `/api/products`) o eliminar (DELETE `/api/products/:pid`) un producto. El servidor emite eventos Socket.io (`productCreated`, `productDeleted`) desde las rutas HTTP correspondientes.
+El **carrito** en el navegador usa `localStorage` (`cartId`) tras el primer POST a `/api/carts`.
 
-## Endpoints
+## Productos — GET `/api/products` (paginación)
 
-### Productos (`/api/products`)
+Query params opcionales:
 
-| Método | Ruta  | Descripción                |
-| ------ | ----- | -------------------------- |
-| GET    | /     | Listar todos los productos |
-| GET    | /:pid | Obtener producto por ID    |
-| POST   | /     | Crear producto             |
-| PUT    | /:pid | Actualizar producto        |
-| DELETE | /:pid | Eliminar producto          |
+| Param | Default | Descripción |
+|-------|---------|-------------|
+| `limit` | `10` | Cantidad por página (máx. 100) |
+| `page` | `1` | Página |
+| `sort` | — | `asc` / `desc` por **precio**; si no se envía, sin orden extra |
+| `query` | — | Filtro / búsqueda (ver abajo) |
 
-**POST /** – Body (ejemplo):
+**`query`:**
+
+- `category:Texto` — categoría (coincidencia parcial, sin regex del usuario en crudo peligroso: se escapan caracteres especiales).
+- `availability:available` o `disponible` — `status: true` y `stock > 0`.
+- `availability:unavailable` o `nodisponible` — resto.
+- Cualquier otro texto — búsqueda en **título** y **descripción**.
+
+**Respuesta:**
 
 ```json
 {
-  "title": "Producto ejemplo",
-  "description": "Descripción",
-  "code": "ABC123",
-  "price": 100,
-  "status": true,
-  "stock": 10,
-  "category": "Categoría",
-  "thumbnails": ["/img1.jpg", "/img2.jpg"]
+  "status": "success",
+  "payload": [ /* productos */ ],
+  "totalPages": 3,
+  "prevPage": null,
+  "nextPage": 2,
+  "page": 1,
+  "hasPrevPage": false,
+  "hasNextPage": true,
+  "prevLink": null,
+  "nextLink": "http://localhost:8080/api/products?limit=10&page=2"
 }
 ```
 
-El `id` se autogenera.
+En error, `status` es `"error"` y el resto de campos de paginación pueden ser `null` / `false`.
 
-### Carritos (`/api/carts`)
+## Endpoints productos (`/api/products`)
 
-| Método | Ruta               | Descripción                    |
-| ------ | ------------------ | ------------------------------ |
-| POST   | /                  | Crear carrito                  |
-| GET    | /:cid              | Listar productos del carrito   |
-| POST   | /:cid/product/:pid | Agregar producto (quantity +1) |
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/` | Listado paginado (formato anterior) |
+| GET | `/:pid` | Producto por id numérico |
+| POST | `/` | Crear |
+| PUT | `/:pid` | Actualizar |
+| DELETE | `/:pid` | Eliminar |
 
-Al agregar un producto ya existente en el carrito, se incrementa su `quantity`.
+## Endpoints carritos (`/api/carts`)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/` | Crear carrito |
+| GET | `/:cid` | Carrito con `products.product` **populate** (documento completo) |
+| POST | `/:cid/product/:pid` | Sumar cantidad (+1) o agregar línea |
+| PUT | `/:cid` | Reemplazar líneas: `{ "products": [{ "product": <id>, "quantity": n }] }` |
+| PUT | `/:cid/products/:pid` | Actualizar solo cantidad: `{ "quantity": n }` |
+| DELETE | `/:cid/products/:pid` | Quitar producto del carrito |
+| DELETE | `/:cid` | Vaciar el carrito (el documento sigue existiendo) |
 
 ## Persistencia
 
-- **products.json** – Productos (en `src/data/`)
-- **carts.json** – Carritos (en `src/data/`)
+- **MongoDB** — modelos en `src/models/` (`Product`, `Cart` con `ref` a `Product`).
 
-Se pueden probar los endpoints con Postman o cualquier cliente HTTP.
+## Pruebas rápidas
+
+Con el servidor en marcha: `./test-api.sh`

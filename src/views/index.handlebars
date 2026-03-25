@@ -1,0 +1,103 @@
+{{!-- Vista catálogo: listado paginado y acciones por producto --}}
+<h1 class="mb-3">Catálogo de productos</h1>
+
+<form method="get" action="/products" class="row g-2 align-items-end mb-4">
+  <div class="col-md-3">
+    <label class="form-label">Búsqueda / filtro (query)</label>
+    <input type="text" class="form-control" name="query" placeholder="texto, category:..., availability:..." value="{{query}}" />
+  </div>
+  <div class="col-md-2">
+    <label class="form-label">Orden precio</label>
+    <select class="form-select" name="sort">
+      <option value="">Sin orden</option>
+      <option value="asc" {{#if (eq sort "asc")}}selected{{/if}}>Ascendente</option>
+      <option value="desc" {{#if (eq sort "desc")}}selected{{/if}}>Descendente</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <label class="form-label">Por página</label>
+    <input type="number" class="form-control" name="limit" min="1" max="100" value="{{limit}}" />
+  </div>
+  <div class="col-md-2">
+    <input type="hidden" name="page" value="1" />
+    <button type="submit" class="btn btn-primary w-100">Aplicar</button>
+  </div>
+</form>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+  {{#each products}}
+    <div class="col">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <h2 class="h5 card-title">{{this.title}}</h2>
+          <p class="text-muted small mb-1">{{this.category}}</p>
+          <p class="fs-5 fw-semibold mb-2">${{this.price}}</p>
+          <p class="card-text small text-truncate flex-grow-1">{{this.description}}</p>
+          <div class="d-grid gap-2 mt-auto">
+            <a class="btn btn-outline-primary btn-sm" href="/products/{{this.id}}">Ver detalle</a>
+            <button type="button" class="btn btn-primary btn-sm btn-add-cart" data-pid="{{this.id}}">Agregar al carrito</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{else}}
+    <p class="text-muted">No hay productos en esta página.</p>
+  {{/each}}
+</div>
+
+<nav aria-label="Paginación">
+  <ul class="pagination">
+    <li class="page-item {{#unless hasPrevPage}}disabled{{/unless}}">
+      {{#if hasPrevPage}}
+        <a class="page-link" href="{{prevLink}}">Anterior</a>
+      {{else}}
+        <span class="page-link">Anterior</span>
+      {{/if}}
+    </li>
+    <li class="page-item disabled">
+      <span class="page-link">Página {{page}} de {{totalPages}}</span>
+    </li>
+    <li class="page-item {{#unless hasNextPage}}disabled{{/unless}}">
+      {{#if hasNextPage}}
+        <a class="page-link" href="{{nextLink}}">Siguiente</a>
+      {{else}}
+        <span class="page-link">Siguiente</span>
+      {{/if}}
+    </li>
+  </ul>
+</nav>
+
+<script>
+  async function ensureCartId() {
+    let cid = localStorage.getItem("cartId");
+    if (!cid) {
+      const res = await fetch("/api/carts", { method: "POST" });
+      const data = await res.json();
+      cid = String(data.id);
+      localStorage.setItem("cartId", cid);
+    }
+    return cid;
+  }
+
+  document.querySelectorAll(".btn-add-cart").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const pid = btn.getAttribute("data-pid");
+      try {
+        const cid = await ensureCartId();
+        const res = await fetch(`/api/carts/${cid}/product/${pid}`, { method: "POST" });
+        if (res.ok) {
+          const nav = document.getElementById("navCartLink");
+          if (nav) nav.setAttribute("href", "/carts/" + cid);
+          btn.disabled = true;
+          btn.textContent = "Agregado";
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = "Agregar al carrito";
+          }, 1200);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  });
+</script>

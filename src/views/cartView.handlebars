@@ -1,0 +1,40 @@
+{{!-- Carrito con productos poblados --}}
+<h1 class="mb-3">Carrito #{{cart.id}}</h1>
+<p class="text-muted mb-4"><a href="/products">Seguir comprando</a></p>
+
+{{#if cart.products.length}}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Producto</th>
+          <th>Categoría</th>
+          <th>Precio unit.</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each cart.products}}
+          <tr>
+            <td>
+              {{#if this.product}}
+                <a href="/products/{{this.product.id}}">{{this.product.title}}</a>
+              {{else}}
+                <span class="text-muted">Producto eliminado</span>
+              {{/if}}
+            </td>
+            <td>{{#if this.product}}{{this.product.category}}{{else}}—{{/if}}</td>
+            <td>{{#if this.product}}{{this.product.price}}{{else}}—{{/if}}</td>
+            <td>{{this.quantity}}</td>
+            <td>
+              {{#if this.subtotal}}{{this.subtotal}}{{else}}—{{/if}}
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+{{else}}
+  <p class="text-muted">El carrito está vacío.</p>
+{{/if}}

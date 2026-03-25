@@ -1,0 +1,57 @@
+{{!-- Detalle de un producto + agregar al carrito --}}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/products">Catálogo</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{product.title}}</li>
+  </ol>
+</nav>
+
+<article class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="card-title">{{product.title}}</h1>
+    <p class="text-muted">{{product.category}}</p>
+    <p class="display-6">${{product.price}}</p>
+    <p class="card-text">{{product.description}}</p>
+    <dl class="row small">
+      <dt class="col-sm-3">Código</dt>
+      <dd class="col-sm-9">{{product.code}}</dd>
+      <dt class="col-sm-3">Stock</dt>
+      <dd class="col-sm-9">{{product.stock}}</dd>
+      <dt class="col-sm-3">Estado</dt>
+      <dd class="col-sm-9">{{#if product.status}}Disponible{{else}}No disponible{{/if}}</dd>
+    </dl>
+    <button type="button" class="btn btn-primary btn-lg" id="btnAddCartDetail" data-pid="{{product.id}}">
+      Agregar al carrito
+    </button>
+    <a href="/products" class="btn btn-outline-secondary ms-2">Volver al catálogo</a>
+  </div>
+</article>
+
+<script>
+  async function ensureCartId() {
+    let cid = localStorage.getItem("cartId");
+    if (!cid) {
+      const res = await fetch("/api/carts", { method: "POST" });
+      const data = await res.json();
+      cid = String(data.id);
+      localStorage.setItem("cartId", cid);
+    }
+    return cid;
+  }
+  document.getElementById("btnAddCartDetail")?.addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    const pid = btn.getAttribute("data-pid");
+    try {
+      const cid = await ensureCartId();
+      const res = await fetch(`/api/carts/${cid}/product/${pid}`, { method: "POST" });
+      if (res.ok) {
+        const nav = document.getElementById("navCartLink");
+        if (nav) nav.setAttribute("href", "/carts/" + cid);
+        btn.textContent = "Agregado al carrito";
+        setTimeout(() => (btn.textContent = "Agregar al carrito"), 1500);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+</script>

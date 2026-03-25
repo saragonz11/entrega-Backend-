@@ -1,15 +1,49 @@
 const express = require("express");
 const router = express.Router();
 const ProductManager = require("../managers/ProductManager");
+const { productsPaginatedPayload } = require("../utils/pagination");
 
 const productManager = new ProductManager();
 
+/**
+ * GET / — listado paginado: limit (default 10), page (default 1), sort (asc|desc por precio), query (filtro).
+ */
 router.get("/", async (req, res) => {
   try {
-    const products = await productManager.getProducts();
-    res.json(products);
+    const limit =
+      req.query.limit !== undefined ? Number(req.query.limit) : undefined;
+    const page =
+      req.query.page !== undefined ? Number(req.query.page) : undefined;
+    const sort = req.query.sort;
+    const query = req.query.query;
+
+    const { docs, totalPages, page: currentPage } =
+      await productManager.getProductsPaginated({
+        limit,
+        page,
+        sort,
+        query,
+      });
+
+    const body = productsPaginatedPayload(req, {
+      payload: docs,
+      totalPages,
+      page: currentPage,
+    });
+    res.json(body);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({
+      status: "error",
+      payload: err.message,
+      totalPages: null,
+      prevPage: null,
+      nextPage: null,
+      page: null,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevLink: null,
+      nextLink: null,
+    });
   }
 });
 
@@ -83,7 +117,7 @@ router.delete("/:pid", async (req, res) => {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
     const io = req.app.get("io");
-    if (io) io.emit("productDeleted", pid);
+    if (io) io.emit("productDeleted", String(pid));
     res.json({ message: "Producto eliminado" });
   } catch (err) {
     res.status(500).json({ error: err.message });
