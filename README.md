@@ -14,6 +14,24 @@ npm install
 2. Asigna `MONGODB_URI` con tu cadena de Atlas. Incluye el **nombre de la base de datos** en la URL, por ejemplo:  
    `...mongodb.net/mi_base?retryWrites=true&w=majority&appName=Cluster0`
 
+### Cómo poner la URL de MongoDB paso a paso
+
+1. En MongoDB Atlas, entra a **Database > Connect > Drivers** y copia el connection string.
+2. En la raíz del proyecto crea/edita el archivo `.env`.
+3. Pega la variable en una sola línea con este formato:
+
+```env
+MONGODB_URI=mongodb+srv://USUARIO:CONTRASENA@cluster.mongodb.net/mi_base?retryWrites=true&w=majority&appName=Cluster0
+```
+
+4. Reemplaza:
+   - `USUARIO` por tu usuario de Atlas.
+   - `CONTRASENA` por tu contraseña.
+   - `mi_base` por el nombre de tu base de datos (por ejemplo `entrega1_api`).
+5. Guarda el archivo y ejecuta `npm start`.
+
+Si en Atlas tienes restriccion de red, agrega tu IP en **Network Access** para permitir la conexion.
+
 **Nota:** Si antes usabas carritos guardados con `product` como número, vacía o migra la colección `carts`: ahora cada ítem referencia al modelo `Product` por `ObjectId` (populate).
 
 ## Ejecución
