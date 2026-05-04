@@ -22,6 +22,7 @@ npm install
 
 ```env
 MONGODB_URI=mongodb+srv://USUARIO:CONTRASENA@cluster.mongodb.net/mi_base?retryWrites=true&w=majority&appName=Cluster0
+JWT_SECRET=tu_clave_secreta_jwt
 ```
 
 4. Reemplaza:
@@ -100,6 +101,49 @@ En error, `status` es `"error"` y el resto de campos de paginación pueden ser `
 | POST | `/` | Crear |
 | PUT | `/:pid` | Actualizar |
 | DELETE | `/:pid` | Eliminar |
+
+## Usuarios (`/api/users`)
+
+Modelo `User`:
+
+- `first_name` (String)
+- `last_name` (String)
+- `email` (String único)
+- `age` (Number)
+- `password` (hash con bcrypt)
+- `cart` (referencia a `Cart`)
+- `role` (String, por defecto `user`)
+
+Endpoints:
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/` | Crear usuario (genera carrito asociado y guarda password hasheada) |
+| GET | `/` | Listar usuarios (requiere JWT válido + rol `admin`) |
+| GET | `/:uid` | Obtener usuario por id (requiere `admin`) |
+| PUT | `/:uid` | Actualizar usuario (si envías password se re-hashea) |
+| DELETE | `/:uid` | Eliminar usuario |
+
+## Sesiones (`/api/sessions`)
+
+Passport incluye estrategias:
+
+- `register` (local)
+- `login` (local)
+- `current` (JWT)
+
+Endpoints:
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/register` | Registra usuario con Passport y devuelve JWT |
+| POST | `/login` | Login con Passport y devuelve JWT |
+| GET | `/current` | Valida JWT y devuelve datos del usuario logueado |
+
+El token JWT se puede enviar por:
+
+- Header `Authorization: Bearer <token>`
+- Cookie `jwtCookieToken`
 
 ## Endpoints carritos (`/api/carts`)
 

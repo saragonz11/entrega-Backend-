@@ -174,8 +174,13 @@
         <a class="navbar-brand" href="/products">Catálogo</a>
         <div class="navbar-nav">
           <a class="nav-link" href="/products">Productos</a>
-          <a class="nav-link" href="/realtimeproducts">Tiempo real</a>
+          <a class="nav-link" id="navAdminLink" href="/realtimeproducts">Administrar productos</a>
           <a class="nav-link" id="navCartLink" href="#">Mi carrito</a>
+          <a class="nav-link" id="navLoginLink" href="/login">Iniciar</a>
+          <a class="nav-link" id="navRegisterLink" href="/register">Registrarse</a>
+          <button class="btn btn-sm btn-outline-light ms-2 d-none" id="logoutBtn" type="button">
+            Salir
+          </button>
         </div>
       </div>
     </nav>
@@ -188,6 +193,54 @@
         var el = document.getElementById("navCartLink");
         if (el && cid) el.setAttribute("href", "/carts/" + cid);
         else if (el) el.setAttribute("href", "/products");
+
+        var loginLink = document.getElementById("navLoginLink");
+        var registerLink = document.getElementById("navRegisterLink");
+        var adminLink = document.getElementById("navAdminLink");
+        var logoutBtn = document.getElementById("logoutBtn");
+
+        fetch("/api/sessions/current")
+          .then(function (res) {
+            return res.ok ? res.json() : null;
+          })
+          .then(function (data) {
+            var loggedIn = !!(data && data.status === "success" && data.user);
+            var isAdmin = !!(loggedIn && data.user.role === "admin");
+            if (logoutBtn) {
+              if (loggedIn) logoutBtn.classList.remove("d-none");
+              else logoutBtn.classList.add("d-none");
+            }
+            if (adminLink) {
+              if (isAdmin) adminLink.classList.remove("d-none");
+              else adminLink.classList.add("d-none");
+            }
+            if (loginLink) {
+              if (loggedIn) loginLink.classList.add("d-none");
+              else loginLink.classList.remove("d-none");
+            }
+            if (registerLink) {
+              if (loggedIn) registerLink.classList.add("d-none");
+              else registerLink.classList.remove("d-none");
+            }
+          })
+          .catch(function () {
+            if (logoutBtn) logoutBtn.classList.add("d-none");
+            if (adminLink) adminLink.classList.add("d-none");
+            if (loginLink) loginLink.classList.remove("d-none");
+            if (registerLink) registerLink.classList.remove("d-none");
+          });
+
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", async function () {
+            try {
+              await fetch("/api/sessions/logout", { method: "POST" });
+            } catch (_) {
+              // Ignorado: igual limpiamos estado local.
+            }
+            localStorage.removeItem("cartId");
+            window.location.href = "/login";
+          });
+        }
       })();
     </script>
     <script

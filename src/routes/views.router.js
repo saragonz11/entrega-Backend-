@@ -1,4 +1,5 @@
 const express = require("express");
+const passport = require("passport");
 const router = express.Router();
 const ProductManager = require("../managers/ProductManager");
 const CartManager = require("../managers/CartManager");
@@ -18,6 +19,14 @@ function productsViewQuery(req, page, limitUsed) {
 
 router.get("/", (req, res) => {
   res.redirect("/products");
+});
+
+router.get("/login", (req, res) => {
+  res.render("login", { title: "Iniciar sesión" });
+});
+
+router.get("/register", (req, res) => {
+  res.render("register", { title: "Registro" });
 });
 
 router.get("/products", async (req, res) => {
@@ -101,16 +110,25 @@ router.get("/carts/:cid", async (req, res) => {
   }
 });
 
-router.get("/realtimeproducts", async (req, res) => {
-  try {
-    const products = await productManager.getProducts();
-    res.render("realTimeProducts", {
-      products,
-      title: "Productos en tiempo real",
-    });
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
+router.get("/realtimeproducts", (req, res, next) => {
+  passport.authenticate("current", { session: false }, async (err, user) => {
+    if (err) return next(err);
+    if (!user) {
+      return res.redirect("/login");
+    }
+    if (user.role !== "admin") {
+      return res.status(403).send("Acceso denegado: solo administradores");
+    }
+    try {
+      const products = await productManager.getProducts();
+      return res.render("realTimeProducts", {
+        products,
+        title: "Administrar productos",
+      });
+    } catch (renderErr) {
+      return res.status(500).send(renderErr.message);
+    }
+  })(req, res, next);
 });
 
 module.exports = router;

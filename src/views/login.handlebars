@@ -1,0 +1,95 @@
+<section class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-5">
+    <article class="card shadow-sm">
+      <div class="card-header">
+        <h1 class="h4 mb-0">Iniciar sesión</h1>
+      </div>
+      <div class="card-body">
+        <form id="loginForm" class="row g-3">
+          <div class="col-12">
+            <label for="email" class="form-label">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              class="form-control"
+              placeholder="tu@email.com"
+              required
+            />
+          </div>
+          <div class="col-12">
+            <label for="password" class="form-label">Contraseña</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-12 d-grid">
+            <button type="submit" class="btn btn-primary">Ingresar</button>
+          </div>
+        </form>
+
+        <div id="loginError" class="alert alert-danger mt-3 d-none" role="alert"></div>
+        <div id="loginSuccess" class="alert alert-success mt-3 d-none" role="alert">
+          Sesión iniciada. Redirigiendo...
+        </div>
+
+        <p class="text-muted mt-3 mb-0">
+          ¿No tienes cuenta?
+          <a href="/register">Regístrate aquí</a>
+        </p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<script>
+  const loginForm = document.getElementById("loginForm");
+  const loginError = document.getElementById("loginError");
+  const loginSuccess = document.getElementById("loginSuccess");
+
+  function showError(message) {
+    loginError.textContent = message;
+    loginError.classList.remove("d-none");
+    loginSuccess.classList.add("d-none");
+  }
+
+  function showSuccess() {
+    loginSuccess.classList.remove("d-none");
+    loginError.classList.add("d-none");
+  }
+
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    loginError.classList.add("d-none");
+    const payload = {
+      email: loginForm.email.value.trim(),
+      password: loginForm.password.value,
+    };
+
+    try {
+      const res = await fetch("/api/sessions/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return showError(data.error || "No se pudo iniciar sesión");
+      }
+
+      if (data.user && data.user.cart && data.user.cart.id) {
+        localStorage.setItem("cartId", String(data.user.cart.id));
+      }
+      showSuccess();
+      setTimeout(() => {
+        window.location.href = "/products";
+      }, 900);
+    } catch (err) {
+      showError("Error de conexión al intentar iniciar sesión");
+    }
+  });
+</script>

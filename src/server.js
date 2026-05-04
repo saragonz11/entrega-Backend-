@@ -10,6 +10,9 @@ const app = require("./app");
 const PORT = process.env.PORT || 8080;
 
 async function bootstrap() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("Falta la variable de entorno JWT_SECRET");
+  }
   await connectDb();
   const server = http.createServer(app);
   const io = new Server(server);
